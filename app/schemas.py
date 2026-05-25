@@ -1,24 +1,63 @@
-from pydantic import BaseModel
+# app/schemas.py
+
 from datetime import datetime
+from pydantic import BaseModel, Field
+
 
 class AdBase(BaseModel):
-    title: str
-    description: str
-    price: float
-    author: str
+    title: str = Field(
+        min_length=1,
+        max_length=200
+    )
+
+    description: str = Field(
+        min_length=1,
+        max_length=1000
+    )
+
+    price: float = Field(
+        gt=0
+    )
+
+    author: str = Field(
+        min_length=1,
+        max_length=100
+    )
+
 
 class AdCreate(AdBase):
     pass
 
+
 class AdUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    price: float | None = None
-    author: str | None = None
+    title: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=200
+    )
+
+    description: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=1000
+    )
+
+    price: float | None = Field(
+        default=None,
+        gt=0
+    )
+
+    author: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=100
+    )
+
 
 class AdOut(AdBase):
     id: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }

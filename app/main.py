@@ -91,6 +91,8 @@ def search_advertisements(
     max_price: float | None = None,
     created_after: datetime | None = None,
     created_before: datetime | None = None,
+    limit: int = 20,
+    offset: int = 0,
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Advertisement)
@@ -137,7 +139,7 @@ def search_advertisements(
             models.Advertisement.created_at <= created_before
         )
 
-    return query.all()
+    return query.offset(offset).limit(limit).all()
 
 
 # Обновление объявления
@@ -320,7 +322,29 @@ def get_user(
 
     return user
 
+# Получение списка пользователей
+@app.get(
+    "/user",
+    response_model=list[schemas.UserOut]
+)
+def get_all_users(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admin rights required"
+        )
+
+    return db.query(models.User).all()
+
 # Обновление пользователя
+@app.patch(
+    "/user/{user_id}",
+    response_model=schemas.UserOut
+)
+
 @app.patch(
     "/user/{user_id}",
     response_model=schemas.UserOut
@@ -341,7 +365,8 @@ def update_user(
             detail="User not found"
         )
 
-    # Проверка прав
+    # Пользователь может менять только себя.
+    # Администратор может менять любого пользователя.
     if (
         current_user.role != "admin"
         and current_user.id != user.id
@@ -354,6 +379,16 @@ def update_user(
     update_data = user_data.model_dump(
         exclude_unset=True
     )
+
+    # Изменять роль может только администратор
+    if (
+        "role" in update_data
+        and current_user.role != "admin"
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Only admin can change roles"
+        )
 
     # Хеширование нового пароля
     if "password" in update_data:

@@ -1,18 +1,25 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base
 
-DATABASE_URL = "sqlite:///./ads.db"
+DATABASE_URL = (
+    "postgresql://postgres:postgres@db:5432/ads"
+)
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(DATABASE_URL)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
 
-class Base(DeclarativeBase):
-    pass
+Base = declarative_base()
 
 
 def get_db():
     db = SessionLocal()
+
     try:
         yield db
     finally:

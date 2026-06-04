@@ -18,6 +18,10 @@ class UserCreate(BaseModel):
         max_length=100
     )
 
+    role: str = Field(
+        default="user"
+    )
+
 
 class UserUpdate(BaseModel):
     username: str | None = Field(
@@ -30,6 +34,10 @@ class UserUpdate(BaseModel):
         default=None,
         min_length=4,
         max_length=100
+    )
+
+    role: str | None = Field(
+        default=None
     )
 
 
